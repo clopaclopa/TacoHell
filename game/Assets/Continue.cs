@@ -1,7 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class Continue : MonoBehaviour {
+public class Continue : MonoBehaviour
+{
 	
 	public AudioSource audio1;
 	public AudioSource audio2;
@@ -17,18 +18,25 @@ public class Continue : MonoBehaviour {
 	{
 		fadeVolumeAndTransition = false;
 	}
-	
-	// Update is called once per frame
-	void Update ()
+
+	public void startTransition(string bgType)
 	{
-		if (!fadeVolumeAndTransition && Input.GetMouseButtonDown(0))
+		if (!fadeVolumeAndTransition)// && Input.GetMouseButtonDown(0))
 		{
+			//Debug.Log("start transition");
 			fadeVolumeAndTransition = true;
 			volume1 = audio1.volume;
 			volume2 = audio2.volume;
 			canvas.transform.Translate (100,0,0);
+
+			//GameObject.Find("GLOBALS").GetComponent<GlobalInfo>().VRMission
+			GlobalInfo.VRMission = (bgType=="vrmission");
 		}
-		
+	}
+	
+	// Update is called once per frame
+	void Update ()
+	{		
 		if (fadeVolumeAndTransition)
 		{
 			audio1.volume -= FadeDelta * Time.deltaTime;

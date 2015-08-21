@@ -15,10 +15,13 @@ public class SmackAnyKeyScript : MonoBehaviour
 	// Update is called once per frame
 	void Update ()
 	{
-		if (Input.GetMouseButtonDown (0)) {
+		if (Input.GetMouseButtonDown (0))
+		{
 			cont.SetActive (true);
+			//Debug.Log(cont.activeInHierarchy + " and " + cont.activeSelf);
 			vr.SetActive (true);
 			this.gameObject.SetActive(false);
+			//Debug.Log("disabling touch anywhere text, enabled continue and vrmissions");
 		}
 	}
 

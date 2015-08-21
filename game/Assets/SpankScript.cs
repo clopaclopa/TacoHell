@@ -14,10 +14,16 @@ public class SpankScript : MonoBehaviour
 	public float spankDuration = 1.0f;
 	private float spankEndTime = 0.0f;
 
+	public Camera cam; 
+
 	// Use this for initialization
 	void Start ()
 	{
-
+		//Debug.Log("VR Mission: " + GlobalInfo.VRMission);
+		if (GlobalInfo.VRMission)
+		{
+			cam.backgroundColor = Color.yellow;
+		}
 	}
 
 	public void Spank()
