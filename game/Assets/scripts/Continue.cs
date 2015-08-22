@@ -53,7 +53,7 @@ public class Continue : MonoBehaviour
 		
 		if (audio1.volume == 0.0f && audio2.volume == 0.0f)
 		{
-			Application.LoadLevel("slicetest");
+			Application.LoadLevel("gamescene");
 			audio1.Stop();
 			audio2.Stop();
 			audio1.volume = volume1;

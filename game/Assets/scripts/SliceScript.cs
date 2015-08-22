@@ -173,6 +173,11 @@ public class TriSlicer
 		return (S2.y * (A2.x - A1.x) + S2.x * (A1.y - A2.y)) / ((S1.x * S2.y) - (S2.x * S1.y));
 	}
 
+	public static Vector2 PointNearestPointOnLine(Vector2 point, Vector2 linepoint, Vector2 linedir)
+	{
+		return linepoint + Vector2.Dot((point - linepoint), linedir) * linedir;
+	}
+
 	public void Slice(Vector2 a, Vector2 b)
 	{
 		if (this.tris.Count > 5000) return;
@@ -213,6 +218,7 @@ public class TriSlicer
 				//figure out which vertex of the triangle is shared by the two intersected edges
 				Vector2 common;
 				Vector2 p1, p2, o1, o2;
+				Vector2 commonuv, o1uv, o2uv;
 				if (isect1valid && isect2valid)
 				{
 					common = tri.v2;
@@ -220,6 +226,9 @@ public class TriSlicer
 					p2 = isect2;
 					o1 = tri.v1;
 					o2 = tri.v3;
+					commonuv = tri.uv2;
+					o1uv = tri.uv1;
+					o2uv = tri.uv3;
 				}
 				else if (isect2valid && isect3valid)
 				{
@@ -228,6 +237,9 @@ public class TriSlicer
 					p2 = isect3;
 					o1 = tri.v2;
 					o2 = tri.v1;
+					commonuv = tri.uv3;
+					o1uv = tri.uv2;
+					o2uv = tri.uv1;
 				}
 				else //if (isect3valid && isect1valid)
 				{
@@ -236,6 +248,9 @@ public class TriSlicer
 					p2 = isect1;
 					o1 = tri.v3;
 					o2 = tri.v2;
+					commonuv = tri.uv1;
+					o1uv = tri.uv3;
+					o2uv = tri.uv2;
 				}
 
 				//create new triangles
@@ -255,11 +270,49 @@ public class TriSlicer
 				nt3.v2 = o2;
 				nt3.v3 = o1;
 
+				//UVs
+				Vector2 o1_common = common - o1;
+				Vector2 o2_common = common - o2;
+				float p1_onto_o1_common = Vector2.Dot(p1-o1, o1_common.normalized) / o1_common.magnitude;
+				Vector2 p1uv = o1uv + p1_onto_o1_common * (commonuv - o1uv);
+				float p2_onto_o2_common = Vector2.Dot(p2-o2, o2_common.normalized) / o2_common.magnitude;
+				Vector2 p2uv = o2uv + p2_onto_o2_common * (commonuv - o2uv);
+
+				nt1.uv1 = p1uv;
+				nt1.uv2 = commonuv;
+				nt1.uv3 = p2uv;
+				//Debug.Log("p1_onto_o1_common: " + p1_onto_o1_common);
+				//Debug.Log("p2_onto_o2_common: " + p2_onto_o2_common);
+				//Debug.Log("nt1 uvs: " + p1uv + " " + commonuv + " " + p2uv + " " + o1uv + " " + o2uv);
+				//Debug.Log("nt1 pos: " + p1 + " " + common + " " + p2 + " " + o1 + " " + o2);
+
+				nt2.uv1 = o1uv;
+				nt2.uv2 = p1uv;
+				nt2.uv3 = p2uv;
+				
+				nt3.uv1 = p2uv;
+				nt3.uv2 = o2uv;
+				nt3.uv3 = o1uv;
+
 				//Give them velocities
-				Vector2 velcommon = (common - (p1 + (p2-p1) * 0.5f));
-				nt1.vel = tri.vel + 0.1f * velcommon;// + (Vector2)Random.onUnitSphere*0.01f;
-				nt2.vel = tri.vel + 0.1f * -velcommon;// + (Vector2)Random.onUnitSphere*0.01f;
-				nt3.vel = tri.vel + 0.1f * -velcommon;// + (Vector2)Random.onUnitSphere*0.01f;
+				//Vector2 velcommon = (common - (p1 + (p2-p1) * 0.5f));
+				//Vector2 nearest = PointNearestPointOnLine(common, a, s);
+				//Vector2 velcommon = (common - nearest).normalized;
+				Vector2 sperp = new Vector2(-s.y, s.x);
+				//Debug.Log(Vector2.Dot(s, sperp));
+				Vector2 velcommon = sperp.normalized;
+				float veladjust = 1.0f;
+				if (Vector2.Dot((common - a), sperp) > 0)
+				{
+					veladjust = 1.0f;
+				}
+				else
+				{
+					veladjust = -1.0f;
+				}
+				nt1.vel = 0.1f * velcommon * veladjust + tri.vel;
+				nt2.vel = 0.1f * -velcommon * veladjust + tri.vel;
+				nt3.vel = nt2.vel;
 
 				addthese.Add(nt1);
 				addthese.Add(nt2);
@@ -295,6 +348,11 @@ public class SliceScript : MonoBehaviour
 
 	public GameObject debugtext;
 
+	public bool sliceMode = false;
+	//float sliceModeStartTime = 0.0f;
+	float sliceModeActivityTime = 0.0f;
+	public float sliceModeMaxIdleTime = 5.0f;
+
 	// Use this for initialization
 	void Start ()
 	{
@@ -303,19 +361,34 @@ public class SliceScript : MonoBehaviour
 
 		trislicer.InitPlane(Mathf.Abs(this.transform.lossyScale.x)*5f);
 		this.transform.localScale = new Vector3(1,1,1);
-
-		//float t = 123.0f;
-		//t = trislicer.LineLineIntersectReturnT(new Vector2(0,0), new Vector2(1,0), new Vector2(0.5f,-1), new Vector2(0f,1));
-		//Debug.Log("t:" + t);
 	}
-	
+
+	private bool dragging = false;
+	Vector2 dragstart;
+	Vector2 dragend;
 	// Update is called once per frame
 	void Update ()
 	{
-		if (Input.GetMouseButtonDown(0))
+		if (!sliceMode) return;
+
+		if (!dragging && Input.GetMouseButton(0))
 		{
+			//Debug.Log("drag");
 			Vector3 clickpoint = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-			trislicer.Slice(new Vector2(-1,clickpoint.y),new Vector2(1,clickpoint.y));
+			dragstart = clickpoint;
+			dragging = true;
+		}
+
+		if (dragging && !Input.GetMouseButton(0))
+		{
+			//Debug.Log("Done drag");
+			Vector3 clickpoint = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+			dragend = clickpoint;
+			dragging = false;
+			Vector2 offset = this.transform.position;
+			trislicer.Slice(dragstart-offset,dragend-offset);
+
+			this.sliceModeActivityTime = Time.time;
 		}
 
 		//Update moving slices
@@ -325,6 +398,20 @@ public class SliceScript : MonoBehaviour
 		//Rebuild actual mesh from 2d slice structure 
 		trislicer.RefreshMesh();
 
-		this.debugtext.GetComponent<Text>().text = "Zangeki: " + trislicer.tris.Count;
+		//this.debugtext.GetComponent<Text>().text = "Zangeki: " + trislicer.tris.Count;
+
+		if (Time.time - this.sliceModeActivityTime > this.sliceModeMaxIdleTime)
+		{
+			this.sliceMode = false;
+			this.trislicer.tris.Clear();
+			this.gameObject.SetActive(false);
+		}
+	}
+
+	public void ActivateSliceMode()
+	{
+		this.sliceMode = true;
+		//this.slicemodestarttime = Time.time;
+		this.sliceModeActivityTime = Time.time;
 	}
 }
