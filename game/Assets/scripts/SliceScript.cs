@@ -367,23 +367,31 @@ public class SliceScript : MonoBehaviour
 	Vector2 dragstart;
 	Vector2 dragend;
 	// Update is called once per frame
-	void Update ()
+	void Update()
 	{
 		if (!sliceMode) return;
 
 		if (!dragging && Input.GetMouseButton(0))
 		{
 			//Debug.Log("drag");
-			Vector3 clickpoint = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-			dragstart = clickpoint;
+			//Vector3 clickpoint = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+			//dragstart = clickpoint;
+
+			Ray clickray = Camera.main.ScreenPointToRay(Input.mousePosition);
+			dragstart = clickray.GetPoint((Camera.main.transform.position - this.transform.position).magnitude);
+
 			dragging = true;
 		}
 
 		if (dragging && !Input.GetMouseButton(0))
 		{
 			//Debug.Log("Done drag");
-			Vector3 clickpoint = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-			dragend = clickpoint;
+			//Vector3 clickpoint = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+			//dragend = clickpoint;
+
+			Ray clickray = Camera.main.ScreenPointToRay(Input.mousePosition);
+			dragend = clickray.GetPoint((Camera.main.transform.position - this.transform.position).magnitude);
+
 			dragging = false;
 			Vector2 offset = this.transform.position;
 			trislicer.Slice(dragstart-offset,dragend-offset);
@@ -400,11 +408,12 @@ public class SliceScript : MonoBehaviour
 
 		//this.debugtext.GetComponent<Text>().text = "Zangeki: " + trislicer.tris.Count;
 
-		if (Time.time - this.sliceModeActivityTime > this.sliceModeMaxIdleTime)
+		if (this.sliceModeActivityTime != 0.0f && (Time.time - this.sliceModeActivityTime > this.sliceModeMaxIdleTime))
 		{
 			this.sliceMode = false;
 			this.trislicer.tris.Clear();
 			this.gameObject.SetActive(false);
+			//Debug.Log("Slice object removed!");
 		}
 	}
 

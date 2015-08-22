@@ -32,6 +32,7 @@ public class SpankScript : MonoBehaviour
 		
 		spankEndTime = Time.time + spankDuration;
 		spankFrame.sortingOrder = 2;
+		normalFrame.sortingOrder = 0;
 	}
 	
 	// Update is called once per frame
@@ -40,6 +41,7 @@ public class SpankScript : MonoBehaviour
 		if (Time.time > spankEndTime)
 		{
 			spankFrame.sortingOrder = 0;
+			normalFrame.sortingOrder = 2;
 		}
 
 		//if (Input.GetMouseButtonDown(0))
