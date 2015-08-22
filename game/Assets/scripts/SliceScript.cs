@@ -18,6 +18,8 @@ public class TriSlicer
 	}
 
 	Mesh mesh;
+	float driftFactor = 0.1f;
+	int maxPieces = 5000;
 
 	//Vector2[] verts;
 	//List<int[]> tris = new List<int[]>();
@@ -26,9 +28,11 @@ public class TriSlicer
 	//List<Vector2> trivels = new List<Vector2>();
 
 	//Constructor, must initialize with a sacrificial mesh
-	public TriSlicer(Mesh _mesh)
+	public TriSlicer(Mesh _mesh, float _driftFactor, int _maxPieces)
 	{
 		mesh = _mesh;
+		this.driftFactor = _driftFactor;
+		this.maxPieces = _maxPieces;
 		//For now, this doesn't load the mesh into the 2d structure (could project or something later)
 	}
 
@@ -180,7 +184,8 @@ public class TriSlicer
 
 	public void Slice(Vector2 a, Vector2 b)
 	{
-		if (this.tris.Count > 5000) return;
+		if (this.tris.Count > maxPieces) return;
+		//Debug.Log(this.tris.Count + " " + maxPieces);
 
 		//Debug.Log("Slice begin. Tris len: " + tris.Count);
 
@@ -310,8 +315,8 @@ public class TriSlicer
 				{
 					veladjust = -1.0f;
 				}
-				nt1.vel = 0.1f * velcommon * veladjust + tri.vel;
-				nt2.vel = 0.1f * -velcommon * veladjust + tri.vel;
+				nt1.vel = this.driftFactor * velcommon * veladjust + tri.vel;
+				nt2.vel = this.driftFactor * -velcommon * veladjust + tri.vel;
 				nt3.vel = nt2.vel;
 
 				addthese.Add(nt1);
@@ -346,7 +351,8 @@ public class SliceScript : MonoBehaviour
 	MeshFilter meshfilter;
 	TriSlicer trislicer;
 
-	public GameObject debugtext;
+	public GameObject sliceCountText;
+	Text sliceCountTextComponent;
 
 	public bool sliceMode = false;
 	//float sliceModeStartTime = 0.0f;
@@ -357,15 +363,20 @@ public class SliceScript : MonoBehaviour
 	public AudioSource audioSourceSliceMode;
 	public AudioSource audioSourceBackground;
 
+	public float driftFactor = 0.1f;
+	public int maxPieces = 5000;
+
 
 	// Use this for initialization
 	void Start ()
 	{
 		meshfilter = this.GetComponent<MeshFilter>();
-		trislicer = new TriSlicer(meshfilter.mesh);
+		trislicer = new TriSlicer(meshfilter.mesh, this.driftFactor, maxPieces);
 
 		trislicer.InitPlane(Mathf.Abs(this.transform.lossyScale.x)*5f);
 		this.transform.localScale = new Vector3(1,1,1);
+
+		this.sliceCountTextComponent = this.sliceCountText.GetComponent<Text>();
 	}
 
 	private bool dragging = false;
@@ -422,7 +433,17 @@ public class SliceScript : MonoBehaviour
 		//Rebuild actual mesh from 2d slice structure 
 		trislicer.RefreshMesh();
 
-		//this.debugtext.GetComponent<Text>().text = "Zangeki: " + trislicer.tris.Count;
+		if (this.sliceCountText)
+		{
+			if (trislicer.tris.Count > 0)
+			{
+				sliceCountTextComponent.text = "" + trislicer.tris.Count;
+			}
+			else
+			{
+				sliceCountTextComponent.text = "";
+			}
+		}
 
 		if (this.sliceModeActivityTime != 0.0f && (Time.time - this.sliceModeActivityTime > this.sliceModeMaxIdleTime))
 		{
