@@ -351,7 +351,12 @@ public class SliceScript : MonoBehaviour
 	public bool sliceMode = false;
 	//float sliceModeStartTime = 0.0f;
 	float sliceModeActivityTime = 0.0f;
+	float timeMouseDown = Time.time;
 	public float sliceModeMaxIdleTime = 5.0f;
+	public float sliceModeActivateTime = 3.0f;
+	public AudioSource audioSourceSliceMode;
+	public AudioSource audioSourceBackground;
+
 
 	// Use this for initialization
 	void Start ()
@@ -369,6 +374,17 @@ public class SliceScript : MonoBehaviour
 	// Update is called once per frame
 	void Update()
 	{
+		// If the mouse button is not down, reset the time to activate slice mode
+		if (!Input.GetMouseButton(0)){
+			timeMouseDown = Time.time;
+		}
+
+		// Check if the mouse has been held down long enough to activate slice mode
+		if (Input.GetMouseButton(0) && !sliceMode) {
+			if ((Time.time - timeMouseDown )> sliceModeActivateTime){
+				ActivateSliceMode();
+			}
+		}
 		if (!sliceMode) return;
 
 		if (!dragging && Input.GetMouseButton(0))
@@ -414,13 +430,18 @@ public class SliceScript : MonoBehaviour
 			this.trislicer.tris.Clear();
 			this.gameObject.SetActive(false);
 			//Debug.Log("Slice object removed!");
+			audioSourceSliceMode.Stop ();
+			audioSourceBackground.Play ();
 		}
 	}
 
 	public void ActivateSliceMode()
 	{
+
 		this.sliceMode = true;
 		//this.slicemodestarttime = Time.time;
 		this.sliceModeActivityTime = Time.time;
+		audioSourceSliceMode.Play ();
+		audioSourceBackground.Stop ();
 	}
 }
