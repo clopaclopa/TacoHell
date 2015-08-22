@@ -351,7 +351,7 @@ public class SliceScript : MonoBehaviour
 	public bool sliceMode = false;
 	//float sliceModeStartTime = 0.0f;
 	float sliceModeActivityTime = 0.0f;
-	float timeMouseDown = Time.time;
+	float timeMouseDown = 0.0f;
 	public float sliceModeMaxIdleTime = 5.0f;
 	public float sliceModeActivateTime = 3.0f;
 	public AudioSource audioSourceSliceMode;
@@ -430,18 +430,17 @@ public class SliceScript : MonoBehaviour
 			this.trislicer.tris.Clear();
 			this.gameObject.SetActive(false);
 			//Debug.Log("Slice object removed!");
-			audioSourceSliceMode.Stop ();
-			audioSourceBackground.Play ();
+			audioSourceSliceMode.Stop();
+			audioSourceBackground.Play();
 		}
 	}
 
 	public void ActivateSliceMode()
 	{
-
 		this.sliceMode = true;
 		//this.slicemodestarttime = Time.time;
 		this.sliceModeActivityTime = Time.time;
-		audioSourceSliceMode.Play ();
-		audioSourceBackground.Stop ();
+		audioSourceSliceMode.Play();
+		audioSourceBackground.Stop();
 	}
 }
