@@ -93,7 +93,7 @@ public class TriSlicer
 		mesh.triangles = tris3;
 		mesh.uv = uvs3;
 		mesh.RecalculateBounds();
-		mesh.RecalculateNormals();
+		//mesh.RecalculateNormals();
 
 		//Debug.Log("verts len: " + mesh.vertices.Length);
 		//Debug.Log("tris len: " + mesh.triangles.Length);
@@ -416,6 +416,12 @@ public class SliceScript : MonoBehaviour
 
 		//If slice mode is not activated, there is nothing to do from here on!
 		if (!sliceMode) return;
+
+		//hack to avoid zbuffer issues
+		if (this.transform.position.z > -0.2)
+		{
+			this.transform.position += new Vector3(0,0,-0.001f);
+		}
 
 		if (!dragging && Input.GetMouseButton(0))
 		{
