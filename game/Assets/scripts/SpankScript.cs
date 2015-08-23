@@ -11,18 +11,17 @@ public class SpankScript : MonoBehaviour
 	public SpriteRenderer normalFrame;
 	public SpriteRenderer spankFrame;
 
-	public GameObject underwearObject;
-	MeshRenderer underwearMeshRenderer;
-	public Material underwearNormalFrame;
-	public Material underwearSpankFrame;
-
+	//public GameObject underwearObject;
+	//MeshRenderer underwearMeshRenderer;
+	//public Material underwearNormalFrame;
+	//public Material underwearSpankFrame;
 
 	public float spankDuration = 1.0f;
 	private float spankEndTime = 0.0f;
 
 	public Camera cam; 
 
-	private bool spankOn = false;
+	public bool spankOn = false;
 
 	// Use this for initialization
 	void Start ()
@@ -33,7 +32,10 @@ public class SpankScript : MonoBehaviour
 			cam.backgroundColor = Color.yellow;
 		}
 
-		underwearMeshRenderer = underwearObject.GetComponent<MeshRenderer>();
+		//underwearMeshRenderer = underwearObject.GetComponent<MeshRenderer>();
+
+		spankFrame.color = new Color(1,1,1,0);
+		normalFrame.color = new Color(1,1,1,1);
 	}
 
 	public void Spank()
@@ -41,9 +43,11 @@ public class SpankScript : MonoBehaviour
 		audioSourceToPlayOnClick.PlayOneShot(audioSourceToPlayOnClick.clip);
 		
 		spankEndTime = Time.time + spankDuration;
-		spankFrame.sortingOrder = 2;
-		normalFrame.sortingOrder = 0;
-		underwearMeshRenderer.material = underwearSpankFrame;
+		//spankFrame.sortingOrder = 2;
+		//normalFrame.sortingOrder = 0;
+		spankFrame.color = new Color(1,1,1,1);
+		normalFrame.color = new Color(1,1,1,0);
+		//underwearMeshRenderer.material = underwearSpankFrame;
 		spankOn = true;
 	}
 	
@@ -52,9 +56,11 @@ public class SpankScript : MonoBehaviour
 	{
 		if (spankOn && Time.time > spankEndTime)
 		{
-			spankFrame.sortingOrder = 0;
-			normalFrame.sortingOrder = 2;
-			underwearMeshRenderer.material = underwearNormalFrame;
+			//spankFrame.sortingOrder = 0;
+			//normalFrame.sortingOrder = 2;
+			spankFrame.color = new Color(1,1,1,0);
+			normalFrame.color = new Color(1,1,1,1);
+			//underwearMeshRenderer.material = underwearNormalFrame;
 			spankOn = false;
 		}
 

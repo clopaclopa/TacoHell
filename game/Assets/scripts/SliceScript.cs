@@ -19,7 +19,7 @@ public class TriSlicer
 
 	Mesh mesh;
 	float driftFactor = 0.1f;
-	int maxPieces = 5000;
+	int maxPieces = 9001;
 
 	//Vector2[] verts;
 	//List<int[]> tris = new List<int[]>();
@@ -194,9 +194,8 @@ public class TriSlicer
 		List<Tri> addthese = new List<Tri>();
 		foreach (Tri tri in tris)
 		{
-			//first do broadband test line-circle or line-square maybe
-
 			//slice this triangle
+
 			//intersect edge 1
 			Vector2 t1a = tri.v1;
 			Vector2 t1s = tri.v2-tri.v1;
@@ -303,11 +302,11 @@ public class TriSlicer
 				//Vector2 velcommon = (common - (p1 + (p2-p1) * 0.5f));
 				//Vector2 nearest = PointNearestPointOnLine(common, a, s);
 				//Vector2 velcommon = (common - nearest).normalized;
-				Vector2 sperp = new Vector2(-s.y, s.x);
+				Vector2 sPerp = new Vector2(-s.y, s.x);
 				//Debug.Log(Vector2.Dot(s, sperp));
-				Vector2 velcommon = sperp.normalized;
+				Vector2 velcommon = sPerp.normalized;
 				float veladjust = 1.0f;
-				if (Vector2.Dot((common - a), sperp) > 0)
+				if (Vector2.Dot((common - a), sPerp) > 0)
 				{
 					veladjust = 1.0f;
 				}
@@ -354,18 +353,27 @@ public class SliceScript : MonoBehaviour
 	public GameObject sliceCountText;
 	Text sliceCountTextComponent;
 
-	public bool sliceMode = false;
-	//float sliceModeStartTime = 0.0f;
-	float sliceModeActivityTime = 0.0f;
-	float timeMouseDown = 0.0f;
+	public GameObject bladeModeElement;
+
+	//If this is primed, it detects slice mode activation
+	public bool sliceModePrimed = false;
+	//The next object to prime (if any) when slice mode is completed here
+	public GameObject nextSliceObjectToPrime;
+
+	//Slice mode settings
 	public float sliceModeMaxIdleTime = 5.0f;
 	public float sliceModeActivateTime = 3.0f;
 	public AudioSource audioSourceSliceMode;
 	public AudioSource audioSourceBackground;
-
 	public float driftFactor = 0.1f;
-	public int maxPieces = 5000;
+	public int maxPieces = 9001;
 
+
+	//Currently in slice mode?
+	private bool sliceMode = false;
+	//float sliceModeStartTime = 0.0f;
+	float sliceModeActivityTime = 0.0f;
+	float timeMouseDown = 0.0f;
 
 	// Use this for initialization
 	void Start ()
@@ -376,7 +384,10 @@ public class SliceScript : MonoBehaviour
 		trislicer.InitPlane(Mathf.Abs(this.transform.lossyScale.x)*5f);
 		this.transform.localScale = new Vector3(1,1,1);
 
-		this.sliceCountTextComponent = this.sliceCountText.GetComponent<Text>();
+		if (this.sliceCountText)
+		{
+			this.sliceCountTextComponent = this.sliceCountText.GetComponent<Text>();
+		}
 	}
 
 	private bool dragging = false;
@@ -385,17 +396,25 @@ public class SliceScript : MonoBehaviour
 	// Update is called once per frame
 	void Update()
 	{
+		//If slice mode is not primed, there is nothing to do from here on!
+		if (!this.sliceModePrimed) return;
+
 		// If the mouse button is not down, reset the time to activate slice mode
-		if (!Input.GetMouseButton(0)){
+		if (!Input.GetMouseButton(0))
+		{
 			timeMouseDown = Time.time;
 		}
 
 		// Check if the mouse has been held down long enough to activate slice mode
-		if (Input.GetMouseButton(0) && !sliceMode) {
-			if ((Time.time - timeMouseDown )> sliceModeActivateTime){
+		if (Input.GetMouseButton(0) && !sliceMode)
+		{
+			if ((Time.time - timeMouseDown ) > sliceModeActivateTime)
+			{
 				ActivateSliceMode();
 			}
 		}
+
+		//If slice mode is not activated, there is nothing to do from here on!
 		if (!sliceMode) return;
 
 		if (!dragging && Input.GetMouseButton(0))
@@ -433,11 +452,21 @@ public class SliceScript : MonoBehaviour
 		//Rebuild actual mesh from 2d slice structure 
 		trislicer.RefreshMesh();
 
+		//If there is an object to display the number of slices, then display it!
 		if (this.sliceCountText)
 		{
 			if (trislicer.tris.Count > 0)
 			{
-				sliceCountTextComponent.text = "" + trislicer.tris.Count;
+				if (trislicer.tris.Count < 9000)
+				{
+					sliceCountTextComponent.fontSize = 80;
+					sliceCountTextComponent.text = "" + trislicer.tris.Count;
+				}
+				else
+				{
+					sliceCountTextComponent.fontSize = 27;
+					sliceCountTextComponent.text = "OVER NINE\nTHOUSAND?!\nTHERE'S NO WAY\nTHAT CAN BE\nRIGHT!!!!";
+				}
 			}
 			else
 			{
@@ -445,14 +474,10 @@ public class SliceScript : MonoBehaviour
 			}
 		}
 
+		//If slice mode has timed out, end it!
 		if (this.sliceModeActivityTime != 0.0f && (Time.time - this.sliceModeActivityTime > this.sliceModeMaxIdleTime))
 		{
-			this.sliceMode = false;
-			this.trislicer.tris.Clear();
-			this.gameObject.SetActive(false);
-			//Debug.Log("Slice object removed!");
-			audioSourceSliceMode.Stop();
-			audioSourceBackground.Play();
+			DeactivateSliceMode();
 		}
 	}
 
@@ -463,5 +488,35 @@ public class SliceScript : MonoBehaviour
 		this.sliceModeActivityTime = Time.time;
 		audioSourceSliceMode.Play();
 		audioSourceBackground.Stop();
+		this.bladeModeElement.SetActive(true);
+	}
+
+	public void DeactivateSliceMode()
+	{
+		//deactivate blademode element
+		this.bladeModeElement.SetActive(false);
+		
+		//Reset the music to what it was before
+		audioSourceSliceMode.Stop();
+		audioSourceBackground.Play();
+		
+		//Disable slice mode priming and slice mode and clean up.
+		this.sliceModePrimed = false;
+		this.sliceMode = false;
+		this.trislicer.tris.Clear();
+		if (this.sliceCountTextComponent)
+		{
+			this.sliceCountTextComponent.text = "";
+		}
+		
+		//Prime the next slice object
+		if (this.nextSliceObjectToPrime)
+		{
+			this.nextSliceObjectToPrime.GetComponent<SliceScript>().sliceModePrimed = true;
+		}
+		
+		//This may not be necessary, but I guess it probably stops scripts from running, which may save resources
+		this.gameObject.SetActive(false);
+		//Debug.Log("Slice object removed!");
 	}
 }
