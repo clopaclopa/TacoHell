@@ -489,12 +489,20 @@ public class SliceScript : MonoBehaviour
 		audioSourceSliceMode.Play();
 		audioSourceBackground.Stop();
 		this.bladeModeElement.SetActive(true);
+		for (int i = 0; i < this.bladeModeElement.transform.childCount; i++)
+		{
+			this.bladeModeElement.transform.GetChild(i).gameObject.SetActive(true);
+		}
 	}
 
 	public void DeactivateSliceMode()
 	{
 		//deactivate blademode element
 		this.bladeModeElement.SetActive(false);
+		for (int i = 0; i < this.bladeModeElement.transform.childCount; i++)
+		{
+			this.bladeModeElement.transform.GetChild(i).gameObject.SetActive(false);
+		}
 		
 		//Reset the music to what it was before
 		audioSourceSliceMode.Stop();

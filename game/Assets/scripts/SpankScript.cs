@@ -8,8 +8,8 @@ public class SpankScript : MonoBehaviour
 
 	//private bool mouseWasDown = false;
 
-	public SpriteRenderer normalFrame;
-	public SpriteRenderer spankFrame;
+	//public SpriteRenderer normalFrame;
+	//public SpriteRenderer spankFrame;
 
 	//public GameObject underwearObject;
 	//MeshRenderer underwearMeshRenderer;
@@ -34,8 +34,8 @@ public class SpankScript : MonoBehaviour
 
 		//underwearMeshRenderer = underwearObject.GetComponent<MeshRenderer>();
 
-		spankFrame.color = new Color(1,1,1,0);
-		normalFrame.color = new Color(1,1,1,1);
+		//spankFrame.color = new Color(1,1,1,0);
+		//normalFrame.color = new Color(1,1,1,1);
 	}
 
 	public void Spank()
@@ -45,8 +45,8 @@ public class SpankScript : MonoBehaviour
 		spankEndTime = Time.time + spankDuration;
 		//spankFrame.sortingOrder = 2;
 		//normalFrame.sortingOrder = 0;
-		spankFrame.color = new Color(1,1,1,1);
-		normalFrame.color = new Color(1,1,1,0);
+		//spankFrame.color = new Color(1,1,1,1);
+		//normalFrame.color = new Color(1,1,1,0);
 		//underwearMeshRenderer.material = underwearSpankFrame;
 		spankOn = true;
 	}
@@ -58,8 +58,8 @@ public class SpankScript : MonoBehaviour
 		{
 			//spankFrame.sortingOrder = 0;
 			//normalFrame.sortingOrder = 2;
-			spankFrame.color = new Color(1,1,1,0);
-			normalFrame.color = new Color(1,1,1,1);
+			//spankFrame.color = new Color(1,1,1,0);
+			//normalFrame.color = new Color(1,1,1,1);
 			//underwearMeshRenderer.material = underwearNormalFrame;
 			spankOn = false;
 		}
