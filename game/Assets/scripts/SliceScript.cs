@@ -393,11 +393,22 @@ public class SliceScript : MonoBehaviour
 	private bool dragging = false;
 	Vector2 dragstart;
 	Vector2 dragend;
+	private bool letUpMouseAtLeastOnce = false;
 	// Update is called once per frame
 	void Update()
 	{
 		//If slice mode is not primed, there is nothing to do from here on!
 		if (!this.sliceModePrimed) return;
+
+		if (!letUpMouseAtLeastOnce)
+		{
+			if (!Input.GetMouseButton(0))
+			{
+				letUpMouseAtLeastOnce = true;
+				return;
+			}
+			return;
+		}
 
 		// If the mouse button is not down, reset the time to activate slice mode
 		if (!Input.GetMouseButton(0))
@@ -418,7 +429,7 @@ public class SliceScript : MonoBehaviour
 		if (!sliceMode) return;
 
 		//hack to avoid zbuffer issues
-		if (this.transform.position.z > -0.2)
+		if (this.transform.position.z > -0.5)
 		{
 			this.transform.position += new Vector3(0,0,-0.001f);
 		}
