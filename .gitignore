@@ -5,6 +5,9 @@ game/[Oo]bj/
 game/[Bb]uild/
 game/Archive/
 game/SpankDatAss_Data/
+game/SpankDatAss.app/
+game/SpankDatAssWeb/
+game/SpankDatAssWebGL/
 
 *.exe
 *.apk
